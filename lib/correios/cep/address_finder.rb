@@ -1,12 +1,11 @@
 module Correios
   module CEP
     class AddressFinder
-      class CEPNotFound < RuntimeError ; end;
-      class InvalidCEPFormat < RuntimeError ; end;
 
       def get(zipcode)
+        validate(zipcode)
         response = web_service.request(zipcode)
-        format_response parser.address(response)
+        parser.address(response)
       end
 
       def self.get(zipcode)
@@ -25,17 +24,8 @@ module Correios
 
       private
 
-      def format_response(response)
-        case response
-        when "CEP NAO ENCONTRADO" 
-          raise CEPNotFound.new "" 
-        when "BUSCA DEFINIDA COMO EXATA, 0 CEP DEVE TER 8 DIGITOS" 
-          raise InvalidCEPFormat.new "" 
-        when "CEP NAO INFORMADO"
-          raise CEPNotFound.new "" 
-        else
-          response
-        end
+      def validate(zipcode)
+        raise ArgumentError if zipcode.to_s.strip.empty? || !zipcode.to_s.match(/\A\d{5}-?\d{3}\z/)
       end
     end
   end
